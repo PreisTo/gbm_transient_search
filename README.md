@@ -63,3 +63,4 @@ crontab -e
 0 6 * * * . /home/fkunzwei/.cron_vars; /home/fkunzwei/data1/sw/gbm_transient_search/bin/transient_search_cron_range.sh >> /home/fkunzwei/log/transient_search_range.log 2>&1
 ```
 
+Test
