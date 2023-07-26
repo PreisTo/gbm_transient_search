@@ -11,6 +11,9 @@ fi
 
 host=$1
 nr_hosts=$2
+log_path="/home/balrog/logs/create_master_ssh.log"
+
+echo "Deleted old SSH Master --- $(date)" >> $log_path
 
 for i in $(seq 1 $(($nr_hosts)) ) ; do
     ssh -O stop -S "~/.ssh/master-socket/$(whoami)@${host}_${i}:22" $host

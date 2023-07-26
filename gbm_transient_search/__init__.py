@@ -1,7 +1,3 @@
-import warnings
-
-warnings.simplefilter("ignore")
-
 from gbm_transient_search.utils.configuration import gbm_transient_search_config
 from gbm_transient_search.handlers.background import (
     GBMBackgroundModelFit,

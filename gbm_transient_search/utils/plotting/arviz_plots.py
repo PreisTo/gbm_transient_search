@@ -26,6 +26,7 @@ class ArvizPlotter(object):
         self._saa_norm_names = np.array([])
 
     def get_param_name(self, stan_name):
+        print(stan_name)   
         source_name = stan_name.split("\n")[0].replace(" ", "")
         idx = stan_name.split("\n")[1].replace(" ", "")
 
@@ -65,14 +66,14 @@ class ArvizPlotter(object):
                 self._arviz_result,
                 var_names=var_names,
             )
-            ax = np.array(ax)
-
+            ax = np.array(ax).flatten()
+            print(ax)
             for i in range(len(ax)):
                 title = ax[i].title.get_text()
+                if "\n" in title:
+                    new_title = self.get_param_name(title).replace("_", " ")
 
-                new_title = self.get_param_name(title).replace("_", " ")
-
-                ax[i].set_title(new_title)
+                    ax[i].set_title(new_title)
 
             if plot_path is not None:
                 plt.savefig(plot_path, transparent=True, dpi=dpi, bbox_inches="tight")
@@ -105,10 +106,10 @@ class ArvizPlotter(object):
                 for j in range(len(ax[i])):
 
                     title = ax[i, j].title.get_text()
+                    if "\n" in title:
+                        new_title = self.get_param_name(title).replace("_", " ")
 
-                    new_title = self.get_param_name(title).replace("_", " ")
-
-                    ax[i, j].set_title(new_title)
+                        ax[i, j].set_title(new_title)
 
             if plot_path is not None:
                 plt.savefig(plot_path, transparent=True, dpi=dpi, bbox_inches="tight")
@@ -136,13 +137,15 @@ class ArvizPlotter(object):
             if type(ax) != np.ndarray:
                 xlabel = ax.get_xlabel()
                 if xlabel != "":
-                    new_label = self.get_param_name(xlabel).replace("_", " \n")
-                    ax.set_xlabel(new_label)
+                    if "\n" in xlabel:
+                        new_label = self.get_param_name(xlabel).replace("_", " \n")
+                        ax.set_xlabel(new_label)
 
                 ylabel = ax.get_ylabel()
                 if ylabel != "":
-                    new_label = self.get_param_name(ylabel).replace("_", " \n")
-                    ax.set_ylabel(new_label)
+                    if "\n" in ylabel:
+                        new_label = self.get_param_name(ylabel).replace("_", " \n")
+                        ax.set_ylabel(new_label)
             else:
                 for i in range(len(ax)):
 
@@ -150,13 +153,15 @@ class ArvizPlotter(object):
 
                         xlabel = ax[i, j].get_xlabel()
                         if xlabel != "":
-                            new_label = self.get_param_name(xlabel).replace("_", " \n")
-                            ax[i, j].set_xlabel(new_label)
+                            if "\n" in xlabel:
+                                new_label = self.get_param_name(xlabel).replace("_", " \n")
+                                ax[i, j].set_xlabel(new_label)
 
                         ylabel = ax[i, j].get_ylabel()
                         if ylabel != "":
-                            new_label = self.get_param_name(ylabel).replace("_", " \n")
-                            ax[i, j].set_ylabel(new_label)
+                            if "\n" in ylabel:
+                                new_label = self.get_param_name(ylabel).replace("_", " \n")
+                                ax[i, j].set_ylabel(new_label)
 
             if plot_path is not None:
                 plt.savefig(plot_path, transparent=True, dpi=dpi, bbox_inches="tight")

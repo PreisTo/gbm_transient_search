@@ -425,7 +425,7 @@ class RunPhysBkgModel(BkgModelTask):
             f"{self.job_dir_remote}",
             f"{script_path}",
             f"{self.date:%y%m%d}",
-            f"{self.requires()['config'].remote_output().path}",
+            f"{self.requires()['config'].remote_output()['config'].path}",
             f"{self.job_dir_remote}",
         ]
 
@@ -482,6 +482,8 @@ class RunPhysBkgModel(BkgModelTask):
         time.sleep(20 * 60 + random.randint(30, 100))
 
         while True:
+            status = self.run_remote_command(check_status_cmd)
+            status = status.decode()
 
             if self.remote_output()["success"].exists():
 
@@ -497,9 +499,9 @@ class RunPhysBkgModel(BkgModelTask):
 
                 else:
 
-                    status = self.run_remote_command(check_status_cmd)
+                    # status = self.run_remote_command(check_status_cmd)
 
-                    status = status.decode()
+                    # status = status.decode()
 
                     if not str(job_id) in status:
 
