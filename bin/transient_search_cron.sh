@@ -6,5 +6,5 @@
 #source /home/balrog/.cron_vars
 source /home/balrog/.venv/transient_search/bin/activate
 
-/home/balrog/.venv/transient_search/bin/python -m luigi --workers 32 --scheduler-host localhost --scheduler-port 8666 --module gbm_transient_search CreateReportDate --date $(date --date='-1 day' +'%Y-%m-%d') --remote-host raven;
+/home/balrog/sw/gbm_transient_search/bin/data_available && /home/balrog/.venv/transient_search/bin/python -m luigi --workers 32 --scheduler-host localhost --scheduler-port 8666 --module gbm_transient_search CreateReportDate --date $(date --date='-1 day' +'%Y-%m-%d') --remote-host raven;
 mv /home/balrog/logs/log.txt /home/balrog/logs/archive/log_$(date --date='-1 day' +'%y%m%d');

@@ -1,0 +1,76 @@
+#!/usr/bin/python
+
+import urllib.request
+from urllib.error import HTTPError
+import time
+import argparse
+
+dets = [
+    "b0",
+    "b1",
+    "n0",
+    "n1",
+    "n2",
+    "n3",
+    "n4",
+    "n5",
+    "n6",
+    "n7",
+    "n8",
+    "n9",
+    "na",
+    "nb",
+]
+
+data_types = {
+    "ctime": ["ctime", "glg_ctime", dets, "pha"],
+    "poshist": ["poshist", "glg_poshist", ["all"], "fit"],
+}
+
+
+def check_file(date, sleep_time=120):
+    base_url = "https://heasarc.gsfc.nasa.gov/FTP/fermi/data/gbm/daily"
+    year = f"20{date[:2]}"
+    month = date[2:4]
+    day = date[4:6]
+    versions = ["v00", "v01"]
+    data_availability = {
+        "poshist": [False],
+        "ctime": [False] * len(dets),
+    }
+
+    flag = True
+    print(f"Starting to look if data is available at {time.asctime()}")
+    while flag:
+        for v in versions:
+            for data_type in data_types.keys():
+                for det_id, det in enumerate(data_types[data_type][2]):
+                    filename = f"{data_types[data_type][1]}_{det}_{date}"
+                    ending = data_types[data_type][3]
+                    try:
+                        with urllib.request.urlopen(
+                            f"{base_url}/{year}/{month}/{day}/current/{filename}_{v}.{ending}"
+                        ) as f:
+                            data_availability[data_type][det_id] = True
+                    except HTTPError as e:
+                        pass
+            f_counter = 0
+            for dt in data_availability.keys():
+                for det in data_availability[dt]:
+                    if det is False:
+                        f_counter += 1
+            if f_counter == 0:
+                flag = False
+                print(f"Starting Pipeline at {time.asctime()}")
+                break
+        if flag:
+            time.sleep(sleep_time)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d", "--date", help="date for which the check shoule be run in form yymmdd"
+    )
+    args = parser.parse_args()
+    check_file(args.date)
