@@ -45,6 +45,7 @@ component:
   show_all_sources: true
   show_earth: true
   show_cgb: true
+  show_gc:  true
   show_sun: true
   show_saa: true
   show_cr: true
@@ -108,8 +109,15 @@ style:
       alpha: .6
       linewidth: 0.8
       show_label: true
+
     sun:
       color: [0.993248, 0.906157, 0.143936]
+      alpha: .6
+      linewidth: 0.8
+      show_label: true
+
+    gc:
+      color: 'fuchsia'
       alpha: .6
       linewidth: 0.8
       show_label: true
