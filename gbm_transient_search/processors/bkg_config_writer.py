@@ -40,9 +40,7 @@ class BkgConfigWriter(object):
         self._update_export()
 
     def mask_triggers(self, trigger_result):
-
         with open(trigger_result, "r") as f:
-
             trigger_info = yaml.safe_load(f)
 
         self._config.update(
@@ -61,7 +59,6 @@ class BkgConfigWriter(object):
             self._config = yaml.safe_load(f)
 
     def _update_general(self):
-
         general_config = dict(
             general=dict(
                 dates=[f"{self._date:%y%m%d}"],
@@ -76,7 +73,6 @@ class BkgConfigWriter(object):
         self._config.update(general_config)
 
     def _update_export(self):
-
         export_config = dict(
             export=dict(save_unbinned=True, save_whole_day=False),
         )
@@ -85,7 +81,6 @@ class BkgConfigWriter(object):
         self._config.update(export_config)
 
     def _update_saa_setup(self):
-
         saa_config = dict(
             saa=dict(
                 time_after_saa=5000,  # 100,
@@ -110,6 +105,7 @@ class BkgConfigWriter(object):
                 use_cgb=True,
                 fix_earth=True,
                 fix_cgb=True,
+                use_gc=True,
                 use_sun=False,
                 ps_list=[],
                 cr_approximation="BGO",
@@ -135,17 +131,12 @@ class BkgConfigWriter(object):
                 min_separation_angle=2.0,
             )
             # write the new ps file in the data folder
-            filepath_all = os.path.join(
-                data_dir,
-                "point_sources",
-                "ps_all_swift.dat"
-            )
+            filepath_all = os.path.join(data_dir, "point_sources", "ps_all_swift.dat")
             ps_select.write_all_psfile(filepath_all)
 
             ps_setup = {}
 
             for ps_name in ps_select.ps_dict.keys():
-
                 ps_setup[ps_name.upper()] = dict(
                     fixed=True,
                     spectrum=dict(pl=dict(spectrum_type="pl", powerlaw_index="swift")),
@@ -162,9 +153,7 @@ class BkgConfigWriter(object):
         self._config["setup"].update(ps_list=ps_setup)
 
     def _update_priors(self):
-
         if self._step == "final":
-
             job_dir = os.path.join(
                 base_dir,
                 f"{self._date:%y%m%d}",
@@ -180,14 +169,11 @@ class BkgConfigWriter(object):
             result_file = os.path.join(job_dir, file_name)
 
             if os.path.exists(result_file):
-
                 self.build_priors_from_result(result_file)
 
                 return True
         else:
-
             for delta_days in range(0, 5):
-
                 day_before = self._date - timedelta(days=delta_days)
 
                 job_dir_day_before = os.path.join(
@@ -205,15 +191,12 @@ class BkgConfigWriter(object):
                 result_file = os.path.join(job_dir_day_before, file_name)
 
                 if os.path.exists(result_file):
-
                     self.build_priors_from_result(result_file)
 
                     return True
 
     def build_priors_from_result(self, result_file, fit_method="stan"):
-
         with h5py.File(result_file, "r") as f:
-
             param_names = f.attrs["param_names"]
 
             best_fit_values = f.attrs["best_fit_values"]
@@ -221,7 +204,6 @@ class BkgConfigWriter(object):
         params = dict(zip(param_names, best_fit_values))
 
         for param_name, best_fit_value in params.items():
-
             param_mean = float("%.3g" % best_fit_value)
             log_param_mean = float("%.3g" % np.log(best_fit_value))
 
@@ -255,6 +237,22 @@ class BkgConfigWriter(object):
                     self._config["priors"]["cgb"]["fixed"]["norm"] = dict(
                         prior="truncated_gaussian",
                         bounds=[4.0e-2, 3.0e-1],
+                        gaussian=[param_mean, 1],
+                    )
+                else:
+                    raise Exception("Unknown fit method")
+            elif param_name == "norm_gc":
+                self._config["priors"]["gc"] = dict(fixed=dict())
+                if fit_method == "stan":
+                    self._config["priors"]["gc"]["norm"] = dict(
+                        prior="normal_on_log",
+                        gaussian=[param_mean, 1],
+                        bounds=[1.0e-3, 10],
+                    )
+                elif fit_method == "multinest":
+                    self._config["priors"]["gc"]["norm"] = dict(
+                        prior="log_uniform",
+                        bounds=[1.0e-3, 10],
                         gaussian=[param_mean, 1],
                     )
                 else:
@@ -303,7 +301,6 @@ class BkgConfigWriter(object):
         # TODO: Use detector specific prior instead of mean over priors
         # this requires adjustment in the background model
         for echan in self._echans:
-
             detector_mean = np.mean(
                 [v for k, v in params.items() if f"norm_constant_echan-{echan}" in k]
             )
@@ -330,7 +327,6 @@ class BkgConfigWriter(object):
                 raise Exception("Unknown fit method")
 
         for echan in self._echans:
-
             detector_mean = np.mean(
                 [v for k, v in params.items() if f"norm_magnetic_echan-{echan}" in k]
             )
@@ -357,7 +353,6 @@ class BkgConfigWriter(object):
                 raise Exception("Unknown fit method")
 
     def write_config_file(self, output):
-
         output().makedirs()
 
         with output().open(mode="w") as f:
