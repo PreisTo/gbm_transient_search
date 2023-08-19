@@ -2,15 +2,13 @@ import re
 
 
 def parse_bkg_fit_params(bkg_fit_params, dets, echans):
-
     params = {}
     for d in dets:
         params[d] = {}
         for e in echans:
             params[d][e] = []
 
-    for (param_name, param) in bkg_fit_params.items():
-
+    for param_name, param in bkg_fit_params.items():
         normalization = re.search("^norm", param_name) is not None
 
         det = None
@@ -36,6 +34,11 @@ def parse_bkg_fit_params(bkg_fit_params, dets, echans):
 
         elif re.search("^norm_constant", param_name) is not None:
             source_name = "constant"
+
+        elif re.search("^norm_gc", param_name) is not None:
+            source_name = "gc"
+            det = "all"
+            echan = "all"
 
         if det is None:
             assert echan is None
