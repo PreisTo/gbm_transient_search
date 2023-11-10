@@ -60,7 +60,6 @@ class LocalizationResultReader(object):
         self._build_report()
 
     def _read_fit_result(self, result_file, model="cpl"):
-
         with fits.open(result_file) as f:
             values = f["ANALYSIS_RESULTS"].data["VALUE"]
             pos_error = f["ANALYSIS_RESULTS"].data["POSITIVE_ERROR"]
@@ -142,7 +141,6 @@ class LocalizationResultReader(object):
             # TODO: use trigger information
 
     def _read_post_equal_weights_file(self, post_equal_weights_file):
-
         # Sometimes chainconsumer does not give an error - In this case we will need the errors from the
         # 3ml fits files
         (
@@ -208,52 +206,42 @@ class LocalizationResultReader(object):
 
     @property
     def ra(self):
-
         return self._ra, self._ra_err
 
     @property
     def dec(self):
-
         return self._dec, self._dec_err
 
     @property
     def K(self):
-
         return self._K, self._K_err
 
     @property
     def alpha(self):
-
         return self._alpha, self._alpha_err
 
     @property
     def xp(self):
-
         return self._xp, self._xp_err
 
     @property
     def beta(self):
-
         return self._beta, self._beta_err
 
     @property
     def index(self):
-
         return self._index, self._index_err
 
     @property
     def xc(self):
-
         return self._xc, self._xc_err
 
     @property
     def kT(self):
-
         return self._kT, self._kT_err
 
     @property
     def model(self):
-
         return self._model
 
 
@@ -365,7 +353,7 @@ def get_best_fit_with_errors(post_equal_weigts_file, model):
         alpha = np.arccos(np.dot(point_2_vec, best_fit_point_vec)) * 180 / np.pi
         if alpha > alpha_largest:
             alpha_largest = alpha
-    alpha_one_sigma = alpha
+    alpha_one_sigma = alpha_largest
 
     mask = val_contour < 0.95
     points = []
@@ -385,7 +373,7 @@ def get_best_fit_with_errors(post_equal_weigts_file, model):
         alpha = np.arccos(np.dot(point_2_vec, best_fit_point_vec)) * 180 / np.pi
         if alpha > alpha_largest:
             alpha_largest = alpha
-    alpha_two_sigma = alpha
+    alpha_two_sigma = alpha_largest
 
     return ra, ra_err, dec, dec_err, alpha_one_sigma, alpha_two_sigma
 
