@@ -3,12 +3,16 @@ import re
 import yaml
 import h5py
 import numpy as np
-from datetime import timedelta
+import pandas as pd
+from datetime import timedelta, datetime
+from astropy.time import Time
 
 from gbmbkgpy.utils.select_pointsources import SelectPointsources
+from gbmbkgpy.io.package_data import get_path_of_data_file
 
 from gbm_transient_search.utils.configuration import gbm_transient_search_config
 from gbm_transient_search.utils.env import get_bool_env_value, get_env_value
+from astropy.coordinates import get_icrs_coordinates
 
 simulate = get_bool_env_value("BKG_PIPE_SIMULATE")
 data_dir = os.environ.get("GBMDATA")
@@ -33,8 +37,10 @@ class BkgConfigWriter(object):
 
         self._update_source_setup()
 
-        self._update_ps_setup()
-
+        try:
+            self._update_ps_setup()
+        except Exception as e:
+            self._update_ps_setup_MAXI()
         # self._update_priors()
 
         self._update_export()
@@ -151,6 +157,64 @@ class BkgConfigWriter(object):
             ps_setup = []
 
         self._config["setup"].update(ps_list=ps_setup)
+
+    def _update_ps_setup_MAXI(self):
+        """
+        Uses the MAXI Transient Catalog to update the PS List if Swift/BAT has
+        issues ... again ...
+        """
+        if int(max(self._echans)) < 3:
+            # get the corresponding table for the given date
+            mjd = int(Time(datetime.strptime(f"{self._date:%y%m%d}", "%y%m%d")).mjd)
+            url = f"http://maxi.riken.jp/fluxtop/fluxtop{mjd}.html"
+            maxi_table = pd.read_html(url)[0]
+
+            # rename the cols
+            rename_dict = {}
+            new_col_names = [
+                "trend",
+                "id",
+                "maxi_name",
+                "flux",
+                "flux_error",
+                "mjd_name",
+                "names",
+            ]
+            for i in range(len(maxi_table.columns)):
+                rename_dict[i] = new_col_names[i]
+            maxi_table.rename(columns=rename_dict, inplace=True)
+
+            maxi_table = maxi_table[maxi_table["flux"] >= 100]
+
+            bat_catalog = pd.read_table(
+                get_path_of_data_file(
+                    "background_point_sources/", "BAT_catalog_clean.dat"
+                ),
+                names=["name1", "name2", "pl_index"],
+            )
+            ps_setup = {}
+            for j, source in maxi_table.iterrows():
+                ps_dict_values, name = get_ps_dict_values_maxi(source, bat_catalog)
+                if ps_dict_values is not None:
+                    ps_setup[name.replace(" ", "").upper()] = dict(
+                        fixed=True,
+                        spectrum=dict(
+                            pl=dict(
+                                spectrum_type="pl",
+                                powerlaw_index=float(ps_dict_values["bat_pl_index"]),
+                                norm=1,
+                            )
+                        ),
+                    )
+        else:
+            ps_setup = []
+        self._config["setup"].update(ps_list=ps_setup)
+
+        # save the names an ra, dec in filepath_all
+        # create ps_setup dict and store the config content
+        # self_ps_dict with rates, error, ra, dec, bat_pl_index
+
+        # update the config["setup"]
 
     def _update_priors(self):
         if self._step == "final":
@@ -357,6 +421,35 @@ class BkgConfigWriter(object):
 
         with output().open(mode="w") as f:
             yaml.dump(self._config, f, default_flow_style=False)
+
+
+def get_ps_dict_values_maxi(source, bat_catalog=None):
+    assert isinstance(
+        bat_catalog, pd.DataFrame
+    ), "BAT Catalog must be a pandas dataframe"
+    names = source["names"]
+    flux = source["flux"]
+    names = names.split(",")
+    i = 0
+    while i < len(names):
+        try:
+            pos = get_icrs_coordinates(names[i])
+            bat_val = bat_catalog[bat_catalog["name2"] == names[i]]
+
+            ps_dict_values = {}
+            ps_dict_values["Rates"] = float(source["flux"])
+            ps_dict_values["Errors"] = float(source["flux_error"])
+            ps_dict_values["Ra"] = float(pos.ra.deg)
+            ps_dict_values["Dec"] = float(pos.dec.deg)
+            ps_dict_values["bat_pl_index"] = float(bat_val["pl_index"])
+            name = names[i]
+            i = len(names)
+        except Exception:
+            ps_dict_values = None
+            # we will catch every error here and just discard the ps if anything fails
+            pass
+        i += 1
+    return ps_dict_values, name
 
 
 class TableWrapper(object):
