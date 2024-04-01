@@ -55,7 +55,7 @@ structure["data"] = dict(data_type="ctime", detectors=run_detectors, echans=run_
 structure["phys_bkg"] = dict(
     stan=dict(n_cores=16),
     multinest=dict(
-        n_cores=4, path_to_python="/home/balrog/.venv/transient_search/bin/python"
+        n_cores=4, path_to_python="/home/balrog/.venv/test/bin/python"
     ),
     timeout=4 * 60 * 60,  # 1 hour
 )
@@ -71,10 +71,10 @@ structure["transient_detection"] = dict(
 
 structure["balrog"] = dict(
     multinest=dict(n_cores=8, path_to_python="python"),
-    timeout=2 * 60 * 60,  # 2 hour
+    timeout=8 * 60 * 60,  # 8 hour
     run_destination="remote",
     remote_wait_time=20 * 60,
-    remote_max_time=2 * 60 * 60,
+    remote_max_time=8 * 60 * 60,
 )
 
 structure["upload"] = dict(
