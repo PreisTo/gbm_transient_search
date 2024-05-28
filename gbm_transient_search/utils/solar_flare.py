@@ -9,7 +9,7 @@ class SolarFlare(object):
     def __init__(self, date):
         self._date = date
         self._load_data()
-        self._calculate_maks()
+        self._calculate_mask()
         self._get_intervals()
 
     def _load_data(self):
