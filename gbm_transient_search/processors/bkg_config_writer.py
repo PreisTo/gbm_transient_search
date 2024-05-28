@@ -6,13 +6,11 @@ import numpy as np
 import pandas as pd
 from datetime import timedelta, datetime
 from astropy.time import Time
-import astropy.io.fits as fits
 
 from gbmbkgpy.utils.select_pointsources import SelectPointsources
 from gbmbkgpy.io.package_data import get_path_of_data_file
 
-from gbm_transient_search.utils.configuration import gbm_transient_search_config
-from gbm_transient_search.utils.env import get_bool_env_value, get_env_value
+from gbm_transient_search.utils.env import get_bool_env_value
 from gbm_transient_search.utils.solar_flare import SolarFlare
 from astropy.coordinates import get_icrs_coordinates
 
@@ -203,7 +201,7 @@ class BkgConfigWriter(object):
             for j, source in maxi_table.iterrows():
                 ps_dict_values, name = get_ps_dict_values_maxi(source, bat_catalog)
                 if ps_dict_values is not None:
-                    ps_setup[name.replace(" ", "").replace(".","").upper()] = dict(
+                    ps_setup[name.replace(" ", "").replace(".", "").upper()] = dict(
                         fixed=True,
                         spectrum=dict(
                             pl=dict(
@@ -213,7 +211,9 @@ class BkgConfigWriter(object):
                             )
                         ),
                     )
-                    ps_dict[name.replace(" ","").replace(".","").upper()] = ps_dict_values
+                    ps_dict[name.replace(" ", "").replace(".", "").upper()] = (
+                        ps_dict_values
+                    )
             self._ps_dict = ps_dict
         else:
             ps_setup = []
@@ -443,7 +443,7 @@ def get_ps_dict_values_maxi(source, bat_catalog=None):
     while i < len(names):
         try:
             pos = get_icrs_coordinates(names[i])
-            bat_val = bat_catalog[bat_catalog["name2"] == names[i].replace(" ","")]
+            bat_val = bat_catalog[bat_catalog["name2"] == names[i].replace(" ", "")]
 
             ps_dict_values = {}
             ps_dict_values["Rates"] = float(source["flux"])
@@ -456,7 +456,6 @@ def get_ps_dict_values_maxi(source, bat_catalog=None):
         except Exception:
             name = None
             ps_dict_values = None
-            name = None
             # we will catch every error here and just discard the ps if anything fails
             pass
         i += 1
