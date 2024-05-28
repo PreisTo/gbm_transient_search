@@ -46,7 +46,7 @@ class BkgConfigWriter(object):
         self._update_export()
 
     def mask_sun(self):
-        sol = SolarFlare(self._date)
+        sol = SolarFlare(self._date.strftime("%y%m%d"))
         self._config.update(dict(mask_intervals=sol.sun_intervals))
 
     def mask_triggers(self, trigger_result):

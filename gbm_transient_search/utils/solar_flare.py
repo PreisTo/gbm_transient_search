@@ -36,13 +36,20 @@ class SolarFlare(object):
         jumps = self._mask.astype(int)[1:] - self._mask.astype(int)[:-1]
         starts = np.argwhere(jumps < 0)[:, 0]
         stops = np.argwhere(jumps > 0)[:, 0]
-        assert len(starts) == len(stops), "starts and stops have to be the same length"
+        if len(starts) != len(stops):
+            if np.abs(len(starts)-len(stops))<2:
+                if starts[0]>stops[0]:
+                    stops = stops[1:]
+                elif starts[-1]>stops[-1]:
+                    starts  = starts[:-1]
+            else:
+                raise ValueError("Starts and Stops differ too much")
         intervals = []
         for a, o in zip(starts, stops):
             if a<o:
-                intervals.append(f"{self._data.time_bins[a,0]}-{self._data.time_bins[o,1]}")
+                intervals.append({"start":float(self._data.time_bins[a,0]),"stop":float(self._data.time_bins[o,1])})
             else:
-                 intervals.append(f"{self._data.time_bins[o,0]}-{self._data.time_bins[a,1]}")
+                intervals.append({"start":float(self._data.time_bins[o,0]),"stop":float(self._data.time_bins[a,1])})
 
         self._sun_intervals = intervals
 
