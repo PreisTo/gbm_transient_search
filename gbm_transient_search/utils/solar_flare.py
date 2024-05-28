@@ -33,13 +33,17 @@ class SolarFlare(object):
 
     def _get_intervals(self):
         # including the saa
-        jumps = self._mask[1:] - self._mask[:-1]
+        jumps = self._mask.astype(int)[1:] - self._mask.astype(int)[:-1]
         starts = np.argwhere(jumps < 0)[:, 0]
         stops = np.argwhere(jumps > 0)[:, 0]
         assert len(starts) == len(stops), "starts and stops have to be the same length"
         intervals = []
         for a, o in zip(starts, stops):
-            intervals.append(f"{self._data.time_bins[a,0]}-{self._data.time_bins[o,1]}")
+            if a<o:
+                intervals.append(f"{self._data.time_bins[a,0]}-{self._data.time_bins[o,1]}")
+            else:
+                 intervals.append(f"{self._data.time_bins[o,0]}-{self._data.time_bins[a,1]}")
+
         self._sun_intervals = intervals
 
     @property
