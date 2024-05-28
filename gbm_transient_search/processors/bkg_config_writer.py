@@ -199,10 +199,11 @@ class BkgConfigWriter(object):
                 names=["name1", "name2", "pl_index"],
             )
             ps_setup = {}
+            ps_dict = {}
             for j, source in maxi_table.iterrows():
                 ps_dict_values, name = get_ps_dict_values_maxi(source, bat_catalog)
                 if ps_dict_values is not None:
-                    ps_setup[name.replace(" ", "").upper()] = dict(
+                    ps_setup[name.replace(" ", "").replace(".","").upper()] = dict(
                         fixed=True,
                         spectrum=dict(
                             pl=dict(
@@ -212,6 +213,8 @@ class BkgConfigWriter(object):
                             )
                         ),
                     )
+                    ps_dict[name.replace(" ","").replace(".","").upper()] = ps_dict_values
+            self._ps_dict = ps_dict
         else:
             ps_setup = []
         self._config["setup"].update(ps_list=ps_setup)
@@ -440,7 +443,7 @@ def get_ps_dict_values_maxi(source, bat_catalog=None):
     while i < len(names):
         try:
             pos = get_icrs_coordinates(names[i])
-            bat_val = bat_catalog[bat_catalog["name2"] == names[i]]
+            bat_val = bat_catalog[bat_catalog["name2"] == names[i].replace(" ","")]
 
             ps_dict_values = {}
             ps_dict_values["Rates"] = float(source["flux"])
@@ -451,6 +454,7 @@ def get_ps_dict_values_maxi(source, bat_catalog=None):
             name = names[i]
             i = len(names)
         except Exception:
+            name = None
             ps_dict_values = None
             name = None
             # we will catch every error here and just discard the ps if anything fails
