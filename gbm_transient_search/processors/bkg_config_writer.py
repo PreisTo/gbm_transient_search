@@ -6,12 +6,14 @@ import numpy as np
 import pandas as pd
 from datetime import timedelta, datetime
 from astropy.time import Time
+import astropy.io.fits as fits
 
 from gbmbkgpy.utils.select_pointsources import SelectPointsources
 from gbmbkgpy.io.package_data import get_path_of_data_file
 
 from gbm_transient_search.utils.configuration import gbm_transient_search_config
 from gbm_transient_search.utils.env import get_bool_env_value, get_env_value
+from gbm_transient_search.utils.solar_flare import SolarFlare
 from astropy.coordinates import get_icrs_coordinates
 
 simulate = get_bool_env_value("BKG_PIPE_SIMULATE")
@@ -44,6 +46,10 @@ class BkgConfigWriter(object):
         # self._update_priors()
 
         self._update_export()
+
+    def mask_sun(self):
+        sol = SolarFlare(self._date)
+        self._config.update(dict(mask_intervals=sol.sun_intervals))
 
     def mask_triggers(self, trigger_result):
         with open(trigger_result, "r") as f:
@@ -446,6 +452,7 @@ def get_ps_dict_values_maxi(source, bat_catalog=None):
             i = len(names)
         except Exception:
             ps_dict_values = None
+            name = None
             # we will catch every error here and just discard the ps if anything fails
             pass
         i += 1

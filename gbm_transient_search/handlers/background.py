@@ -57,14 +57,14 @@ class GBMBackgroundModelFit(luigi.Task):
 
             for echans in run_echans:
 
-                bkg_fit_tasks[
-                    f"bkg_d{'_'.join(dets)}_e{'_'.join(echans)}"
-                ] = CopyResults(
-                    date=self.date,
-                    echans=echans,
-                    detectors=dets,
-                    remote_host=self.remote_host,
-                    step=self.step,
+                bkg_fit_tasks[f"bkg_d{'_'.join(dets)}_e{'_'.join(echans)}"] = (
+                    CopyResults(
+                        date=self.date,
+                        echans=echans,
+                        detectors=dets,
+                        remote_host=self.remote_host,
+                        step=self.step,
+                    )
                 )
 
         return bkg_fit_tasks
@@ -166,16 +166,10 @@ class CreateBkgConfig(BkgModelTask):
 
     def output(self):
         return dict(
-            config=luigi.LocalTarget(
-                os.path.join(self.job_dir, "config_fit.yml")
-            ),
+            config=luigi.LocalTarget(os.path.join(self.job_dir, "config_fit.yml")),
             ps_file=luigi.LocalTarget(
-                os.path.join(
-                    data_dir,
-                    "point_sources",
-                    "ps_all_swift.dat"
-                )
-            )
+                os.path.join(data_dir, "point_sources", "ps_all_swift.dat")
+            ),
         )
 
     def remote_output(self):
@@ -190,11 +184,11 @@ class CreateBkgConfig(BkgModelTask):
                 os.path.join(
                     remote_hosts_config["hosts"][self.remote_host]["data_dir"],
                     "point_sources",
-                    "ps_all_swift.dat"
+                    "ps_all_swift.dat",
                 ),
                 host=self.remote_host,
                 username=remote_hosts_config["hosts"][self.remote_host]["username"],
-            )
+            ),
         )
 
     def run(self):
@@ -204,6 +198,7 @@ class CreateBkgConfig(BkgModelTask):
         )
 
         config_writer.build_config()
+        config_writer.mask_sun()
 
         if self.step == "final":
             config_writer.mask_triggers(self.input()["transient_search"].path)
