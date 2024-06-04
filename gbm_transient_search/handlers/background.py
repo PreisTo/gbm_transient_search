@@ -198,7 +198,8 @@ class CreateBkgConfig(BkgModelTask):
         )
 
         config_writer.build_config()
-        config_writer.mask_sun()
+        if "n5" in self.detectors:
+            config_writer.mask_sun()
 
         if self.step == "final":
             config_writer.mask_triggers(self.input()["transient_search"].path)

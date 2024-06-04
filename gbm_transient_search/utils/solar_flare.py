@@ -25,9 +25,9 @@ class SolarFlare(object):
     def _calculate_mask(self):
         self._mask = get_cutouts(
             self._data.counts[:, 0, 0] / self._data.time_bin_width,
-            th=870,  # default threshold cps value
+            th=10000,  # default threshold cps value
             t=self._data.time_bins[:, 0],
-            cutout=60,
+            cutout=30,
             mask=self._data.rebinned_saa_mask,
         )
 
